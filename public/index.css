@@ -1,0 +1,16 @@
+body {
+  font-family: 'Andale Mono';
+  text-align: center;
+  font-size: larger;
+}
+
+.emoji-aligned {
+  height: 1em;
+  width: auto;
+}
+
+.crypt-mail::after {
+  content: attr(data-tld) "\002E" attr(data-domain) "\0040" attr(data-user);
+  unicode-bidi: bidi-override;
+  direction: rtl;
+}
