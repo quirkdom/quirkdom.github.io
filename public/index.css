@@ -9,6 +9,10 @@ body {
   width: auto;
 }
 
+.prof-pic {
+  border-radius: 20% 20% 20% 20%;
+}
+
 .crypt-mail::after {
   content: attr(data-tld) "\002E" attr(data-domain) "\0040" attr(data-user);
   unicode-bidi: bidi-override;
