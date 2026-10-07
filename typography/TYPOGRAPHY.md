@@ -34,10 +34,11 @@ Only the font is ours.
 | `font-family: et-book, Palatino, …` | `"ET Bembo", "ET Bembo Fallback", Palatino, …` | See §6 — the order is load-bearing. |
 | No fallback metrics | 3 metric-overridden `@font-face` rules using `local()` | Stops the page reflowing when the woff2 lands. |
 | — | `@font-face { font-display: swap }` retained from upstream | Same intent as upstream. |
+| `html { font-size: 15px }` | `html { font-size: 12px }` | 21px body copy (1.4rem × 15px) is large on screen; lowering the root to 12px makes 1.4rem render at ~16.8px — close to 16px, with sidenotes staying legible at 13.2px — while every rem ratio stays the same. |
 
 ### Deliberately unchanged
 
-Everything else. Specifically: `html { font-size: 15px }`, the `87.5%` body
+Everything else. Specifically: the `87.5%` body
 width with `12.5%` left padding, `section > p { width: 55% }`, `.sidenote`
 `margin-right: -60%` / `width: 50%`, `line-height: 2rem`, the italic `h2`/`h3`,
 `#fffff8` on `#111`, the `prefers-color-scheme: dark` pair, the `@media print`
@@ -224,11 +225,13 @@ Three ways to deliver it, and they are not equivalent for this site:
   accessibility, and a rendering dependency.
 
 Whichever you pick, check the rendered size against body text. Upstream
-`tufte-css` sets `html { font-size: 15px }` and `p { font-size: 1.4rem;
-line-height: 2rem }`, so body copy is 21px on a 30px leading. Expect to nudge
-inline maths with a `scale` or a `font-size` on the maths container rather than
-on the body: the LaTeX recommendation was made at 10–11pt, and an optical size
-that works in a book does not automatically work at 21px on a screen.
+`tufte-css` sets `html { font-size: 15px }`, but body text is `1.4rem` — not
+`1rem` — so it renders at 21px, not 15px. This site lowers the root to 12px so
+that 1.4rem renders at ~16.8px (close to the 16px target); `line-height: 2rem`
+gives 24px leading at that root. Expect to nudge inline maths with a `scale`
+or a `font-size` on the maths container rather than on the body: the LaTeX
+recommendation was made at 10–11pt, and an optical size that works in a book
+does not automatically work at 16.8px on a screen.
 
 ---
 
