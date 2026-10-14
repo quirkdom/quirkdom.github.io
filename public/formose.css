@@ -1,0 +1,621 @@
+/* formose - old Latin adjective meaning 'beautiful', 'pretty' or 'graceful'.
+
+Custom CSS adapted from tufte-css [1], with additional style inputs from latex-css [2].
+Optimized for web readability while heavily following the typographic style of Edward Tufte's handouts.
+
+[1] https://edwardtufte.github.io/tufte-css/
+[2] https://latex.vercel.app/
+
+Author: Abhishek Bhattacharya */
+
+@charset "UTF-8";
+
+/* ET Bembo, from the CTAN "ETbb" package. Subset by scripts/build-webfonts.sh.
+
+   Two changes from the faces tufte-css ships by default:
+
+   - woff2 only. Upstream lists eot, woff, ttf and svg per face.
+   - Two files per face, split by unicode-range. An English post downloads
+     the -core file only; -ext is fetched if and only if a character outside
+     Latin-1 actually appears on the page.
+
+   Upstream also loads a fourth family, et-book-roman-old-style, solely to get
+   oldstyle numerals. ETbb carries onum in all four faces, so that family is
+   gone and the numerals are requested with font-variant-numeric instead.
+   ETbb's default figures are lining: `lnum` is a no-op in these fonts and
+   `onum` is what maps to the .taboldstyle glyphs. */
+
+@font-face {
+    font-family: "ET Bembo";
+    src: url("fonts/ETbb-Regular-core.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0020-007E, U+00A0-00FF, U+2010-2015, U+2018-201D, U+2020-2026, U+2030, U+2032-2033, U+2039, U+2044, U+20AC, U+FB00-FB01;
+}
+@font-face {
+    font-family: "ET Bembo";
+    src: url("fonts/ETbb-Regular-ext.woff2") format("woff2");
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0100-017F, U+0180-024F, U+1E00-1EFF, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: "ET Bembo";
+    src: url("fonts/ETbb-Bold-core.woff2") format("woff2");
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0020-007E, U+00A0-00FF, U+2010-2015, U+2018-201D, U+2020-2026, U+2030, U+2032-2033, U+2039, U+2044, U+20AC, U+FB00-FB01;
+}
+@font-face {
+    font-family: "ET Bembo";
+    src: url("fonts/ETbb-Bold-ext.woff2") format("woff2");
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+    unicode-range: U+0100-017F, U+0180-024F, U+1E00-1EFF, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+    font-family: "ET Bembo";
+    src: url("fonts/ETbb-Italic-core.woff2") format("woff2");
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+    unicode-range: U+0020-007E, U+00A0-00FF, U+2010-2015, U+2018-201D, U+2020-2026, U+2030, U+2032-2033, U+2039, U+2044, U+20AC, U+FB00-FB01;
+}
+@font-face {
+    font-family: "ET Bembo";
+    src: url("fonts/ETbb-Italic-ext.woff2") format("woff2");
+    font-weight: normal;
+    font-style: italic;
+    font-display: swap;
+    unicode-range: U+0100-017F, U+0180-024F, U+1E00-1EFF, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* Metric-overridden local fallbacks, measured against Georgia (see Georgia's
+   hhea: asc .9170, desc .2192, gap 0, x-height .4814 against ETbb's .896 /
+   .289 / .090 and x-height .433). Without these the swap to ET Bembo reflows
+   the page; with them the line boxes are identical. */
+@font-face {
+    font-family: "ET Bembo Fallback";
+    src: local("Georgia"), local("Times New Roman");
+    size-adjust: 89.94%;
+    ascent-override: 87.68%;
+    descent-override: 28.28%;
+    line-gap-override: 8.81%;
+}
+@font-face {
+    font-family: "ET Bembo Fallback";
+    src: local("Georgia Bold"), local("Times New Roman Bold");
+    font-weight: bold;
+    size-adjust: 89.73%;
+    ascent-override: 92%;
+    descent-override: 28.35%;
+    line-gap-override: 8.83%;
+}
+@font-face {
+    font-family: "ET Bembo Fallback";
+    src: local("Georgia Italic"), local("Times New Roman Italic");
+    font-style: italic;
+    size-adjust: 88.69%;
+    ascent-override: 88.22%;
+    descent-override: 28.48%;
+    line-gap-override: 8.93%;
+}
+
+/* Tufte CSS styles */
+html {
+    font-size: 12px;
+}
+
+body {
+    width: 87.5%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 12.5%;
+    font-family: "ET Bembo", "ET Bembo Fallback", Palatino, "Palatino Linotype", "Palatino LT STD", "Book Antiqua", Georgia, serif;
+    background-color: #fffff8;
+    color: #111;
+    max-width: 1400px;
+    counter-reset: sidenote-counter;
+    text-rendering: optimizeLegibility;
+}
+
+/* Adds dark mode */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #151515;
+        color: #ddd;
+    }
+}
+
+h1 {
+    font-weight: 400;
+    margin-top: 1.5rem;
+    margin-bottom: 1.5rem;
+    font-size: 3.2rem;
+    line-height: 1;
+}
+
+section > h1:first-child {
+    margin-top: 0;
+}
+
+h2 {
+    font-style: italic;
+    font-weight: 400;
+    margin-top: 2.1rem;
+    margin-bottom: 1.4rem;
+    font-size: 2.2rem;
+    line-height: 1;
+}
+
+h3 {
+    font-style: italic;
+    font-weight: 400;
+    font-size: 1.7rem;
+    margin-top: 2rem;
+    margin-bottom: 1.4rem;
+    line-height: 1;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    width: 55%;
+    border: 0;
+    border-top: 1px solid #ccc;
+    margin: 1em 0;
+    padding: 0;
+}
+
+p.subtitle {
+    font-style: italic;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    display: block;
+    line-height: 1;
+}
+
+.numeral {
+    font-variant-numeric: oldstyle-nums;
+}
+
+.danger {
+    color: red;
+}
+
+article {
+    padding: 2.5rem 0rem;
+}
+
+section {
+    padding-top: 0.5rem;
+    padding-bottom: 1rem;
+}
+
+p,
+dl,
+ol,
+ul {
+    font-size: 1.4rem;
+    line-height: 2rem;
+}
+
+p {
+    margin-top: 1.4rem;
+    margin-bottom: 1.4rem;
+    padding-right: 0;
+    vertical-align: baseline;
+}
+
+sub,
+sup {
+    font-size: 75%;
+    line-height: 0;
+    position: relative;
+    vertical-align: baseline;
+}
+
+sup {
+    top: -0.5em;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+small {
+    font-size: 0.85em;
+}
+
+ins {
+    text-decoration: underline;
+    text-underline-offset: 0.1em;
+    text-decoration-thickness: 0.05em;
+}
+
+del,
+s {
+    text-decoration-line: line-through;
+    text-decoration-thickness: 0.1em;
+}
+
+/* Highlighter pen effect adapted from Max Hoffmann (https://stackoverflow.com/a/64127605, CC BY-SA 4.0) */
+mark {
+    color: inherit;
+    margin: 0 -0.4em;
+    padding: 0.1em 0.4em;
+    border-radius: 0.8em 0.3em;
+    background: transparent;
+    background-image: linear-gradient(
+        to right,
+        rgba(255, 225, 0, 0.1),
+        rgba(255, 225, 0, 0.7) 4%,
+        rgba(255, 225, 0, 0.3)
+    );
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+}
+
+@media (prefers-color-scheme: dark) {
+    mark {
+        background-image: linear-gradient(
+            to right,
+            rgba(255, 120, 220, 0.45),
+            rgba(255, 120, 220, 0.78) 4%,
+            rgba(255, 120, 220, 0.55)
+        );
+    }
+}
+
+/* Chapter Epigraphs */
+div.epigraph {
+    margin: 5em 0;
+}
+
+div.epigraph > blockquote {
+    margin-top: 3em;
+    margin-bottom: 3em;
+}
+
+div.epigraph > blockquote,
+div.epigraph > blockquote > p {
+    font-style: italic;
+}
+
+div.epigraph > blockquote > footer {
+    font-style: normal;
+}
+
+div.epigraph > blockquote > footer > cite {
+    font-style: italic;
+}
+/* end chapter epigraphs styles */
+
+blockquote {
+    font-size: 1.4rem;
+}
+
+blockquote p {
+    width: 55%;
+    margin-right: 40px;
+}
+
+blockquote footer {
+    width: 55%;
+    font-size: 1.1rem;
+    text-align: right;
+}
+
+section > p,
+section > footer,
+section > table {
+    width: 55%;
+}
+
+/* 50 + 5 == 55, to be the same width as paragraph */
+section > dl,
+section > ol,
+section > ul {
+    width: 50%;
+    -webkit-padding-start: 5%;
+}
+
+dt:not(:first-child),
+li:not(:first-child) {
+    margin-top: 0.25rem;
+}
+
+figure {
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+    max-width: 55%;
+    -webkit-margin-start: 0;
+    -webkit-margin-end: 0;
+    margin: 0 0 3em 0;
+}
+
+figcaption {
+    float: right;
+    clear: right;
+    margin-right: -60%;
+    width: 50%;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    vertical-align: baseline;
+    position: relative;
+}
+
+figure.fullwidth figcaption {
+    margin-top: 0.5rem;
+    margin-right: 0;
+    width: 100%;
+}
+
+a:link,
+a:visited {
+    color: inherit;
+    text-underline-offset: 0.1em;
+    text-decoration-thickness: 0.05em;
+    text-decoration-skip-ink: auto;
+}
+
+a:focus-visible {
+    outline: 2px solid #3366cc;
+    outline-offset: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+    a:focus-visible {
+        outline-color: #6699ff;
+    }
+}
+
+/* Sidenotes, margin notes, figures, captions */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+figure.fullwidth img {
+    width: 100%;
+}
+
+.sidenote,
+.marginnote {
+    float: right;
+    clear: right;
+    margin-right: -60%;
+    width: 50%;
+    margin-top: 0.3rem;
+    margin-bottom: 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    vertical-align: baseline;
+    position: relative;
+}
+
+.sidenote-number {
+    counter-increment: sidenote-counter;
+}
+
+.sidenote-number:after,
+.sidenote:before {
+    font-variant-numeric: oldstyle-nums;
+    position: relative;
+    vertical-align: baseline;
+}
+
+.sidenote-number:after {
+    content: counter(sidenote-counter);
+    font-size: 1rem;
+    top: -0.5rem;
+    left: 0.1rem;
+}
+
+.sidenote:before {
+    content: counter(sidenote-counter) " ";
+    font-size: 1rem;
+    top: -0.5rem;
+}
+
+blockquote .sidenote,
+blockquote .marginnote {
+    margin-right: -82%;
+    min-width: 59%;
+    text-align: left;
+}
+
+div.fullwidth,
+table.fullwidth {
+    width: 100%;
+}
+
+div.table-wrapper {
+    overflow-x: auto;
+    font-family: "Trebuchet MS", "Gill Sans", "Gill Sans MT", sans-serif;
+}
+
+.sans {
+    font-family: "Gill Sans", "Gill Sans MT", Calibri, sans-serif;
+    letter-spacing: .03em;
+}
+
+code, pre > code, kbd, samp {
+    /* font-family: Consolas, "Liberation Mono", Menlo, Courier, monospace; */
+    font-family: ui-monospace, "Cascadia Mono", "Segoe UI Mono", "Ubuntu Mono", "Roboto Mono", Menlo, Monaco, Consolas, monospace;
+    font-size: 1.0rem;
+    line-height: 1.42;
+    -webkit-text-size-adjust: 100%; /* Prevent adjustments of font size after orientation changes in iOS. See https://github.com/edwardtufte/tufte-css/issues/81#issuecomment-261953409 */
+}
+
+kbd {
+    font-size: 0.85em;
+    color: #111;
+    background-color: #fafaf5;
+    border: 1px solid #c8c8c0;
+    border-bottom: 2px solid #b0b0a8;
+    border-radius: 3px;
+    padding: 0.1em 0.35em;
+    white-space: nowrap;
+}
+
+@media (prefers-color-scheme: dark) {
+    kbd {
+        color: #ddd;
+        background-color: #262626;
+        border-color: #484848;
+        border-bottom-color: #585858;
+    }
+}
+
+.sans > code {
+    font-size: 1.2rem;
+}
+
+h1 > code,
+h2 > code,
+h3 > code {
+    font-size: 0.80em;
+}
+
+.marginnote > code,
+.sidenote > code {
+    font-size: 1.0rem;
+}
+
+pre > code {
+    width: 52.5%;
+    margin-left: 2.5%;
+    overflow-x: auto;
+    display: block;
+}
+
+pre.fullwidth > code {
+    width: 90%;
+}
+
+.fullwidth {
+    max-width: 90%;
+    clear:both;
+}
+
+span.newthought {
+    font-variant: small-caps;
+    font-size: 1.2em;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+.break-all {
+    word-break: break-all;
+}
+
+.whitespace-nowrap {
+    white-space: nowrap;
+}
+
+label.sidenote-number {
+    display: inline-block;
+    max-height: 2rem; /* should be less than or equal to paragraph line-height */
+    margin-right: 0.35em;
+}
+
+.iframe-wrapper {
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 */
+    padding-top: 25px;
+    height: 0;
+}
+
+.iframe-wrapper iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+@media (max-width: 760px) {
+    body {
+        width: 84%;
+        padding-left: 8%;
+        padding-right: 8%;
+    }
+
+    hr,
+    section > p,
+    section > footer,
+    section > table {
+        width: 100%;
+    }
+
+    pre > code {
+        width: 97%;
+    }
+
+    section > dl,
+    section > ol,
+    section > ul {
+        width: 90%;
+    }
+
+    figure {
+        max-width: 90%;
+    }
+
+    figcaption,
+    figure.fullwidth figcaption {
+        float: none;
+        clear: both;
+        margin-right: 0;
+        margin-top: 0.5rem;
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    blockquote {
+        margin-left: 1.5em;
+        margin-right: 0em;
+    }
+
+    blockquote p,
+    blockquote footer {
+        width: 100%;
+    }
+
+    .sidenote,
+    .marginnote {
+        float: left;
+        left: 1rem;
+        clear: both;
+        width: 95%;
+        margin: 1rem 2.5%;
+        position: relative;
+        display: block;
+    }
+
+    .marginnote:before {
+        content: "\2020\0020";
+        font-size: 1rem;
+        top: -0.5rem;
+        position: relative;
+        vertical-align: baseline;
+    }
+
+    div.table-wrapper,
+    table {
+        width: 85%;
+    }
+}

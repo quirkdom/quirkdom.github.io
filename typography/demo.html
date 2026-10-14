@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typography Demo</title>
+    <link rel="stylesheet" href="../public/formose.css">
+</head>
+
+<body>
+    <article>
+        <section>
+            <h1>Typography Demo <code>demo</code></h1>
+            <p class="subtitle">A subtitle paragraph demonstrating <code>subtitle</code> styling.</p>
+
+            <h2>Paragraph Variants</h2>
+            <p>A normal paragraph with real text. The measure stays narrow, the leading is generous, and the serif
+                family carries the reading. Everything is anchored to the 55% rule.</p>
+            <!-- Tests: base paragraph width (55%), font-family stack, line-height 2rem -->
+            <p>A paragraph containing inline <code>font-family: Consolas</code> code with a 1.42 line-height.</p>
+            <!-- Tests: inline code styling (Consolas, 1.0rem) -->
+            <!-- Note: requires label.sidenote-number + span.sidenote for counter/numerals. -->
+            <p>A paragraph demonstrating a side note attached to a mid-paragraph clause<label for="sn-1" class="sidenote-number"></label><span id="sn-1" class="sidenote">A sidenote at a clause boundary with inline <code>code</code>. This floats right at 50% width, 1.1rem size.</span>, followed by text that resumes naturally after the clause.</p>
+            <!-- Tests: sidenote float at clause boundary, folds cleanly between clauses on mobile -->
+            <p>A paragraph demonstrating a side note attached at the end of a complete sentence.<label for="sn-2" class="sidenote-number"></label><span id="sn-2" class="sidenote">A sidenote placed at a sentence boundary.</span> The subsequent sentence continues the thought smoothly.</p>
+            <!-- Tests: sidenote float at sentence boundary -->
+            <p>A paragraph with a margin note about page layout.<span class="marginnote">Margin note content with <code>monospace</code> fragments.</span></p>
+            <!-- Tests: marginnote float, width 50%, code inside marginnote -->
+
+            <h2>Special Text Styles</h2>
+            <p><span class="numeral">0123</span> oldstyle numerals and <span class="newthought">A New Thought</span>
+                using small-caps at 1.2em.</p>
+            <!-- Tests: .numeral (oldstyle-nums), .newthought (small-caps) -->
+            <p class="danger">This paragraph uses the <code>.danger</code> class to display red warning text.</p>
+            <!-- Tests: .danger (red color) -->
+            <p class="sans">A sans-serif paragraph using Gill Sans, with slightly wider letter-spacing and a different
+                rhythm.</p>
+            <!-- Tests: .sans family, letter-spacing .03em; .sans > code if present -->
+            <p>Text with superscript<sup>1</sup> and subscript<sub>2</sub> testing zero line-height alignment. Mathematical or chemical expressions like H<sub>2</sub>O and E = mc<sup>2</sup> remain level.</p>
+            <!-- Tests: sup, sub zero line-height and relative vertical offsets -->
+            <p>Inline semantic formatting: <small>fine print with &lt;small&gt;</small>, <ins>inserted text</ins>, <del>deleted text</del>, <s>strikethrough text</s>, and <mark>highlighted text</mark>.</p>
+            <!-- Tests: small, ins, del, s -->
+            <p>Keyboard shortcuts like <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd> and sample output <samp>status 200 OK</samp>.</p>
+            <!-- Tests: kbd badge styling and samp monospace -->
+            <p class="text-justify">This paragraph demonstrates text justification using the <code>.text-justify</code> class. It also tests long tokens with <code class="break-all">https://example.com/very/long/path/with/break-all/class/applied/to/demonstrate/wrapping</code> and unbroken words using the <span class="whitespace-nowrap">.whitespace-nowrap class</span>.</p>
+            <!-- Tests: .text-justify, .break-all, .whitespace-nowrap -->
+
+            <hr>
+
+            <h2>Lists</h2>
+            <ul>
+                <li>Unordered item with inline <code>code</code>.</li>
+                <li>A second item to show spacing.</li>
+            </ul>
+            <ol>
+                <li>Ordered item with <code>monospace</code>.</li>
+                <li>A second ordered item.</li>
+            </ol>
+            <dl>
+                <dt>Term</dt>
+                <dd>A definition with <code>inline code</code>.</dd>
+                <dt>Second Term</dt>
+                <dd>Another definition.</dd>
+            </dl>
+
+            <h2>Blockquotes</h2>
+            <blockquote>
+                <p>A blockquote about typography. The paragraph width shrinks to 55%, the footer aligns right, and the
+                    font stays at 1.4rem.</p>
+                <footer>— Edward Tufte</footer>
+            </blockquote>
+            <!-- Tests: blockquote width 55%, footer right-aligned 1.1rem -->
+
+            <blockquote>
+                <p>A quote with a sidenote inside.<label for="sn-3" class="sidenote-number"></label><span id="sn-3" class="sidenote">Note inside the quote: margin-right -82%, min-width 59%.</span></p>
+                <footer>— Source</footer>
+            </blockquote>
+            <!-- Tests: sidenote inside blockquote (margin-right -82%, text-align left) -->
+
+            <div class="epigraph">
+                <blockquote>
+                    <p>An epigraph is a quotation set at the beginning of a work that suggests its theme.</p>
+                    <footer>— Some Author, <cite>Book Title</cite></footer>
+                </blockquote>
+            </div>
+
+            <h2>Figures</h2>
+            <figure>
+                <img src="../public/prof_abi.jpg" alt="Profile portrait">
+                <figcaption>A standard figure with a small image (73×73px), caption floated in the margin aligned to the top of the figure.</figcaption>
+            </figure>
+            <!-- Tests: small image preserves size on mobile; figcaption floats in margin at 50% width on desktop -->
+
+            <figure>
+                <img src="https://picsum.photos/id/845/1072/712" alt="Landscape photo">
+                <figcaption>A standard figure, caption floated right in margin just like a marginnote.</figcaption>
+            </figure>
+            <!-- Tests: figure max-width 55%, figcaption in margin -->
+
+            <figure class="fullwidth">
+                <img src="https://picsum.photos/id/830/2000/1111" alt="Fullwidth figure">
+                <figcaption>A fullwidth figure with 100% width caption underneath.</figcaption>
+            </figure>
+            <!-- Tests: fullwidth figure (img 100%), fullwidth caption -->
+
+            <h2>Tables</h2>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Column A</th>
+                            <th>Column B</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Row 1</td>
+                            <td>Data here</td>
+                        </tr>
+                        <tr>
+                            <td>Row 2</td>
+                            <td>More data</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="table-wrapper fullwidth">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Full A</th>
+                            <th>Full B</th>
+                            <th>Full C</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>2</td>
+                            <td>3</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <h2>Code Blocks</h2>
+            <pre><code>/* Normal pre > code */
+pre > code {
+    width: 52.5%;
+    margin-left: 2.5%;
+}</code></pre>
+            <!-- Tests: pre > code width 52.5%, left margin 2.5%, overflow-x auto -->
+
+            <pre class="fullwidth"><code>/* Fullwidth pre > code */
+pre.fullwidth > code {
+    width: 90%;
+}</code></pre>
+            <!-- Tests: fullwidth pre > code width 90% -->
+
+            <h2>Links</h2>
+            <p>A <a href="https://quirkdom.com">standard link</a> inherits the text color and uses a thin underline
+                offset.</p>
+
+            <h1>Heading One <code>demo</code></h1>
+            <h2>Heading Two <code>demo</code></h2>
+            <h3>Heading Three <code>demo</code></h3>
+            <!-- Tests: h1 > code, h2 > code, h3 > code sizing 0.80em -->
+
+            <h2>Responsive Behavior</h2>
+            <p>Resize below 760px to observe the single-column switch, wider images, left-floating sidenotes, and
+                visible margin-toggle labels.</p>
+        </section>
+    </article>
+</body>
+
+</html>

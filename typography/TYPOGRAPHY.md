@@ -1,8 +1,8 @@
 # Typography
 
-How this site sets text, what was changed in `public/tufte.css`, how to reach
-the features of the ET Bembo subsets, and what to keep when you prune
-`etbb/` before committing.
+How this site sets text, what `public/formose.css` changed relative to upstream
+`tufte-css`, how to reach the features of the ET Bembo subsets, and what lives
+in the `typography/etbb/` tree.
 
 ---
 
@@ -13,12 +13,14 @@ taken from the CTAN [`ETbb`](https://ctan.org/pkg/etbb) package rather than from
 his `edwardtufte/et-book` webfont, because the CTAN OpenType files carry the full
 feature set and a 497-codepoint Latin coverage.
 
-`public/tufte.css` is **upstream `tufte-css` with the font layer replaced and
-nothing else touched**. Upstream is 9,494 bytes and every rule about measure,
-leading, the sidenote gutter, `counter-reset: sidenote-counter`, dark mode and
-print is byte-identical to what Tufte ships.
+`public/formose.css` is a stylesheet **adapted from upstream `tufte-css`**, with
+style inputs from `latex-css`, whose font layer has been replaced.
+The measure, leading, sidenote gutter, `counter-reset: sidenote-counter` and
+dark mode still follow Tufte; the type scale below the `@font-face` block is
+locally authored, and the mobile sidenote rules are our own. The file is named
+`formose` because it has diverged from upstream enough to be its own thing.
 
-Only the font is ours.
+The font, the local additions, and the mobile sidenote treatment are ours.
 
 ---
 
@@ -31,18 +33,24 @@ Only the font is ours.
 | `et-book` × 3 faces, each with `eot` + `woff` + `ttf` + `svg` sources | `"ET Bembo"` × 3 faces, `woff2` only | Every browser that can run this page parses `woff2`. The other three formats are dead weight. |
 | One file per face | Two files per face, split by `unicode-range` (`-core` / `-ext`) | An English post downloads `-core` only. `-ext` is fetched **only if** a character outside Latin-1 actually appears. |
 | A 4th family, `et-book-roman-old-style`, loaded purely to get oldstyle numerals | Deleted; `font-variant-numeric: oldstyle-nums` instead | ET Bembo carries `onum` in all four source faces, so the extra family was 44 KB of redundancy. |
-| `font-family: et-book, Palatino, …` | `"ET Bembo", "ET Bembo Fallback", Palatino, …` | See §6 — the order is load-bearing. |
+| `font-family: et-book, Palatino, …` | `"ET Bembo", "ET Bembo Fallback", Palatino, …` | See §7 — the order is load-bearing. |
 | No fallback metrics | 3 metric-overridden `@font-face` rules using `local()` | Stops the page reflowing when the woff2 lands. |
 | — | `@font-face { font-display: swap }` retained from upstream | Same intent as upstream. |
 | `html { font-size: 15px }` | `html { font-size: 12px }` | 21px body copy (1.4rem × 15px) is large on screen; lowering the root to 12px makes 1.4rem render at ~16.8px — close to 16px, with sidenotes staying legible at 13.2px — while every rem ratio stays the same. |
+| Mobile sidenotes hidden behind a `:checked` toggle | Shown inline, always | Upstream reveals `.sidenote` / `.marginnote` only through the toggle below 760px; on a phone that hid the note unless you found the marker. Ours read inline. |
+| Only `sup { line-height: 0 }` | `sub, sup` zero line-height with baseline offsets; `<small>`, `<ins>`, `<del>`, `<s>` | Prevents chemical formulas (`H2O`) or mathematical subscripts from blowing out the 2rem line leading; harmonizes semantic text markup with Tufte measure. |
+| No `<kbd>` or `<samp>` styling | Monospace keycap badges for `<kbd>` and monospace `<samp>` | LaTeX.css input: readable keyboard shortcut badges with keycap bevel depth and high-contrast dark mode. |
+| Browser default `<mark>` | Realistic multi-line highlighter pen effect | Paper-yellow gradient in light mode, bright neon pink gradient in dark mode, with `box-decoration-break: clone`. |
+| Default link focus | `a:focus-visible` with offset outline; `text-decoration-skip-ink: auto` | Accessible keyboard navigation without distracting mouse clicks; cleaner descender ink skipping. |
+| No text flow utilities | `.text-justify`, `.break-all`, `.whitespace-nowrap` | LaTeX document justification, wrapping long URLs/tokens without breaking layout, and keeping compound words unbroken. |
 
 ### Deliberately unchanged
 
 Everything else. Specifically: the `87.5%` body
 width with `12.5%` left padding, `section > p { width: 55% }`, `.sidenote`
 `margin-right: -60%` / `width: 50%`, `line-height: 2rem`, the italic `h2`/`h3`,
-`#fffff8` on `#111`, the `prefers-color-scheme: dark` pair, the `@media print`
-block, and `span.newthought { font-variant: small-caps }`.
+`#fffff8` on `#111`, the `prefers-color-scheme: dark` pair, and
+`span.newthought { font-variant: small-caps }`.
 
 If you change any of those, you are departing from Tufte on purpose. That is
 fine — just know that they are his, not inherited from a template by accident.
@@ -71,7 +79,7 @@ A typical English post with bold and italic text pulls **104,760 bytes** of
 source `.otf` files total 313,456 bytes, so the always-needed path is 3×
 smaller than shipping a single unsubsetted face.
 
-The `src` paths in `tufte.css` are relative to the **stylesheet**, not the
+The `src` paths in `formose.css` are relative to the **stylesheet**, not the
 document. The build copies `public/**` to the **document root**, so
 `url("fonts/…")` resolves to `/fonts/…` — *not* `/public/fonts/…` — from any
 page depth.
@@ -107,7 +115,7 @@ what maps to the `.taboldstyle` glyphs. So oldstyle must be asked for.
 <span class="numeral">1973</span>
 ```
 
-`tufte.css` already wires that class:
+`formose.css` already wires that class:
 
 ```css
 .numeral { font-variant-numeric: oldstyle-nums; }
@@ -191,7 +199,7 @@ both subsets.
 ET Bembo has no math glyphs, so this is a pairing problem rather than a subset
 problem — **nothing above needs to change** when you add one.
 
-The ETbb package says so itself. From `etbb/doc/ETbb-doc.tex`, in a section
+The ETbb package says so itself. From `typography/etbb/doc/ETbb-doc.tex`, in a section
 titled *"A suggested math companion"*:
 
 > This text package works well with `newtxmath` with the `libertine` option,
@@ -241,9 +249,11 @@ does not automatically work at 16.8px on a screen.
 scripts/build-webfonts.sh
 ```
 
-Run it from the repo root. The script creates `.venv-fonts/` and installs
-`fonttools` and `brotli` on first run (git-ignored). Override with
-`PYFTSUBSET=/path/to/pyftsubset` if you want to use an existing install.
+Run it from the repo root. It reads the source faces from
+`typography/etbb/opentype/` and writes `public/fonts/`. The script creates
+`.venv-fonts/` and installs `fonttools` and `brotli` on first run (git-ignored).
+Override with `PYFTSUBSET=/path/to/pyftsubset` if you want to use an existing
+install.
 
 ### What it includes
 
@@ -277,55 +287,44 @@ are declared at the top of the file in one place.
 
 ### The licence
 
-`etbb/doc/LICENSE` is copied to `public/fonts/LICENSE-ETbb.txt` on every run.
+`typography/etbb/doc/LICENSE` is copied to `public/fonts/LICENSE-ETbb.txt` on
+every run.
 MIT requires the notice to travel with the font, and a subset is a copy. Keep
 that file. Do not strip the name table.
 
 ---
 
-## 6. Pruning `etbb/` before you commit
+## 6. The `typography/etbb/` tree
 
-**This matters.** The full CTAN package is **9.7 MB**, and roughly 9.86 MB of it
-is LaTeX plumbing that this site will never read. `tfm/` alone is 5.3 MB of
+The CTAN package is **already pruned** — what remains is ~800 KB:
+
+```
+typography/etbb/README                          3,701   provenance, version, changes
+typography/etbb/doc/LICENSE                     1,215   MIT; copied into public/fonts/ on build
+typography/etbb/doc/ETbb-doc.tex               31,577   the manual's source
+typography/etbb/doc/ETbb-doc.pdf              350,901   the 30-page manual
+typography/etbb/opentype/ETbb-Regular.otf     117,208   build input
+typography/etbb/opentype/ETbb-Bold.otf        103,624   build input
+typography/etbb/opentype/ETbb-Italic.otf       92,624   build input
+typography/etbb/opentype/ETbb-BoldItalic.otf   99,920   present, but not in the subset
+```
+
+The three `.otf` faces the script reads are the build's source of truth. Keep
+them or the subsets become unreproducible — you would be shipping binaries with
+no way to regenerate them after a package bump. `ETbb-BoldItalic.otf` is unused
+(see §5): keep or drop it, but nothing reads it.
+
+Everything else the CTAN tarball shipped — `afm/`, `tfm/`, `vf/`, `type1/`,
+`enc/`, `tex/`, `map/`, the `.sty` and `.fd` files — is for `\usepackage{ETbb}`
+and has been removed. This site has no TeX in it; `tfm/` alone was 5.3 MB of
 bitmap metrics.
-
-### Keep — 318 KB
-
-```
-etbb/README                        3,701   provenance, version, changes
-etbb/doc/LICENSE                   1,215   MIT; copied into public/fonts/ on build
-etbb/opentype/ETbb-Regular.otf   117,208   build input
-etbb/opentype/ETbb-Bold.otf      103,624   build input
-etbb/opentype/ETbb-Italic.otf     92,624   build input
-```
-
-The three `.otf` files are the build's source of truth. Commit them or the
-subsets become unreproducible — you would be shipping binaries with no way to
-regenerate them after a package bump.
-
-### Drop — ~9.86 MB
-
-```
-etbb/afm/              1,768K   Adobe font metrics, TeX/dvips only
-etbb/tfm/              5,408K   bitmap font metrics, TeX only
-etbb/vf/                 800K   virtual font metrics, TeX only
-etbb/type1/              504K   Type 1 sources, for pdfTeX/dvips
-etbb/enc/                456K   113 TeX encoding vectors
-etbb/tex/                160K   ETbb.sty and the .fd font-definition files
-etbb/map/                 32K   dvips map file
-etbb/doc/ETbb-doc.pdf   344K   the 30-page PDF manual
-etbb/doc/ETbb-doc.tex    32K   the manual's source
-etbb/opentype/ETbb-BoldItalic.otf  100K  not in the subset
-```
-
-All of that is for `\usepackage{ETbb}`. This site has no TeX in it.
 
 **Checklist before you commit:**
 
 - [ ] `public/fonts/*.woff2` are committed — CI copies `public/` into `dist/` but never re-runs the font build, so an untracked subset deploys as a 404.
 - [ ] `public/fonts/LICENSE-ETbb.txt` is committed alongside them.
-- [ ] `etbb/opentype/ETbb-{Regular,Bold,Italic}.otf` are committed.
-- [ ] `etbb/doc/LICENSE` is committed — the build copies it.
+- [ ] `typography/etbb/opentype/ETbb-{Regular,Bold,Italic}.otf` are committed.
+- [ ] `typography/etbb/doc/LICENSE` is committed — the build copies it.
 - [ ] `.venv-fonts/` is ignored (see `.gitignore`).
 - [ ] `scripts/build-webfonts.sh` still runs from a clean clone.
 

@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
-# Subset the ETbb OpenType faces in etbb/opentype/ down to webfonts in public/fonts/.
+# Subset the ETbb OpenType faces in typography/etbb/opentype/ down to webfonts in
+# public/fonts/.
 #
-# Source of truth: etbb/opentype/*.otf (MIT, see etbb/doc/LICENSE).
-# Only ever run this from the repo root:  tools/build-webfonts.sh
+# Source of truth: typography/etbb/opentype/*.otf (MIT, see typography/etbb/doc/LICENSE).
+# Only ever run this from the repo root:  scripts/build-webfonts.sh
 set -euo pipefail
 
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-src="$root/etbb/opentype"
+src="$root/typography/etbb/opentype"
 out="$root/public/fonts"
 
 pyftsubset="${PYFTSUBSET:-}"
@@ -61,7 +62,7 @@ for face in "${faces[@]}"; do
 done
 
 # MIT requires the notice to travel with the font, and a subset is a copy.
-cp "$root/etbb/doc/LICENSE" "$out/LICENSE-ETbb.txt"
+cp "$root/typography/etbb/doc/LICENSE" "$out/LICENSE-ETbb.txt"
 
 printf '%-28s %8s\n' file bytes
 for face in "${faces[@]}"; do
