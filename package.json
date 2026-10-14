@@ -1,0 +1,17 @@
+{
+  "name": "quirkdom.github.io",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "bun run scripts/build.ts",
+    "dev": "bun run scripts/dev-server.ts",
+    "fonts": "scripts/build-webfonts.sh"
+  },
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "^1.4.2"
+  },
+  "peerDependencies": {
+    "typescript": "^7.0.2"
+  }
+}

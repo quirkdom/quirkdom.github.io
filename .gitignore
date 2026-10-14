@@ -1,0 +1,9 @@
+# created by scripts/build-webfonts.sh
+.venv-fonts/
+
+.DS_Store
+
+# build output of scripts/build.ts (see .github/workflows/deploy.yml)
+dist/
+
+node_modules/
