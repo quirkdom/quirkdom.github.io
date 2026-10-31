@@ -18,20 +18,20 @@ jobs:
     build:
         runs-on: ubuntu-slim
         steps:
-            - uses: actions/checkout@v4
+            - uses: actions/checkout@v7
 
             - uses: oven-sh/setup-bun@v2
               with:
-                  bun-version: "1.4.2"
+                  bun-version: "1.4.4"
 
             # No `bun install` step: the build has no dependencies. Bun renders
             # the markdown itself and everything else is copied verbatim.
             - name: Build
               run: bun run build
 
-            - uses: actions/configure-pages@v5
+            - uses: actions/configure-pages@v6
 
-            - uses: actions/upload-pages-artifact@v3
+            - uses: actions/upload-pages-artifact@v5
               with:
                   path: dist
 
@@ -43,4 +43,4 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
         steps:
             - id: deployment
-              uses: actions/deploy-pages@v4
+              uses: actions/deploy-pages@v5
