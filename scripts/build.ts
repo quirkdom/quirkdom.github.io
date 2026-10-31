@@ -30,6 +30,7 @@ export interface BuildResult {
     pages: number;
     writings: number;
     assets: number;
+    bundles: number;
     writingsList: Writing[];
 }
 
@@ -248,6 +249,116 @@ export function renderWritings(writings: Writing[]): string {
     return html + "</ul>\n";
 }
 
+const NATIVE_IMPORTS = /^three(\/|$)/;
+
+function escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Leave root-absolute URLs (fonts, images, `/formose.css`) and the CDN bare
+ * imports the importmap resolves untouched. Only a page's own relative CSS/JS
+ * is handed to Bun, so the verbatim `public/` contract is never disturbed.
+ * The entry HTML paths are themselves absolute and must resolve normally.
+ */
+function externalAssets(entries: Set<string>): Bun.BunPlugin {
+    return {
+        name: "quirkdom-external",
+        setup(build) {
+            build.onResolve({ filter: /^\// }, (args) =>
+                entries.has(args.path) ? undefined : { path: args.path, external: true },
+            );
+            build.onResolve({ filter: NATIVE_IMPORTS }, (args) => ({ path: args.path, external: true }));
+        },
+    };
+}
+
+interface BundleInputs {
+    entries: string[];
+    sources: Set<string>;
+}
+
+/**
+ * A page opts into bundling by referencing its own CSS/JS with a relative URL
+ * (`./index.css`). Pages that only use root-absolute assets — every `~abi/`
+ * page, which loads `/formose.css` — are left byte-for-byte alone.
+ */
+async function findBundleInputs(outDir: string): Promise<BundleInputs> {
+    const entries: string[] = [];
+    const sources = new Set<string>();
+    for (const rel of await walk(outDir)) {
+        if (!rel.endsWith(".html")) continue;
+        const htmlPath = path.join(outDir, rel);
+        const dir = path.dirname(htmlPath);
+        let bundles = false;
+        for (const ref of extractReferences(await readFile(htmlPath, "utf8"))) {
+            const clean = (ref.split(/[?#]/)[0] ?? "").trim();
+            if (
+                !clean ||
+                clean.startsWith("/") ||
+                clean.startsWith("//") ||
+                /^[a-z][a-z0-9+.-]*:/i.test(clean)
+            ) {
+                continue;
+            }
+            if (![".css", ".js", ".mjs"].includes(path.extname(clean).toLowerCase())) continue;
+            const resolved = path.resolve(dir, clean);
+            if (!resolved.startsWith(outDir + path.sep) || !existsSync(resolved)) continue;
+            bundles = true;
+            sources.add(resolved);
+        }
+        if (bundles) entries.push(htmlPath);
+    }
+    return { entries, sources };
+}
+
+/**
+ * Bundle and minify the relative CSS/JS each page references, hashing the
+ * result into `assets/`. Runs after the copy pass: the HTML is rewritten in
+ * place and the original unbundled sources are removed so only the hashed
+ * copies ship.
+ */
+async function bundlePageAssets(outDir: string): Promise<number> {
+    const { entries, sources } = await findBundleInputs(outDir);
+    if (!entries.length) return 0;
+
+    const result = await Bun.build({
+        entrypoints: entries,
+        outdir: outDir,
+        minify: true,
+        plugins: [externalAssets(new Set(entries))],
+        naming: {
+            entry: "[dir]/[name].[ext]",
+            chunk: "assets/[name]-[hash].[ext]",
+            asset: "assets/[name]-[hash].[ext]",
+        },
+    });
+
+    if (!result.success) {
+        throw new Error(
+            `bundling failed:\n${result.logs.map((l) => String(l.message ?? l)).join("\n")}`,
+        );
+    }
+
+    // A page with CSS but no JS makes Bun emit an empty script chunk and inject
+    // a tag for it; drop both.
+    for (const output of result.outputs) {
+        if (output.kind !== "entry-point" || !output.path.endsWith(".js") || output.size !== 0) continue;
+        await rm(output.path, { force: true });
+        const pattern = new RegExp(
+            `<script[^>]*src="[^"]*${escapeRegExp(path.basename(output.path))}"[^>]*></script>`,
+            "g",
+        );
+        for (const entry of entries) {
+            const html = await readFile(entry, "utf8");
+            await writeFile(entry, html.replace(pattern, ""));
+        }
+    }
+
+    for (const source of sources) await rm(source, { force: true });
+    return entries.length;
+}
+
 export function parseArgs(args: string[]): BuildOptions {
     const drafts =
         args.includes("--drafts") ||
@@ -434,12 +545,15 @@ export async function build(options: BuildOptions = {}): Promise<BuildResult> {
         }
     }
 
+    const bundles = await bundlePageAssets(outDir);
+
     await writeFile(path.join(outDir, ".nojekyll"), "");
 
     return {
         pages: mdPages.length + htmlPages,
         writings: writings.length,
         assets,
+        bundles,
         writingsList: writings,
     };
 }
@@ -450,7 +564,7 @@ async function main(): Promise<void> {
     const targetDir = options.outDir ? path.relative(ROOT, path.resolve(options.outDir)) : "dist";
     console.log(
         `built ${result.pages} page(s), ${result.writings} writing(s), ` +
-            `${result.assets} asset(s) -> ${targetDir}/` +
+            `${result.assets} asset(s), ${result.bundles} bundled -> ${targetDir}/` +
             (options.drafts ? " (drafts enabled)" : ""),
     );
     for (const writing of result.writingsList.sort((a, b) => b.date.localeCompare(a.date))) {

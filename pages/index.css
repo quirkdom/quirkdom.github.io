@@ -27,7 +27,7 @@ html {
 }
 
 /* The document scrolls when the bg art needs to clear content
-   (see the portal guard in index.js); body must be free to grow. */
+   (see the portal guard in index.mjs); body must be free to grow. */
 html,
 body {
     min-height: 100dvh;
@@ -76,7 +76,7 @@ body::before {
     right: 0;
     bottom: 0;
     /* Natural aspect at full width, never squashed or cropped.
-       Positioned by the portal guard in index.js, which may grow
+       Positioned by the portal guard in index.mjs, which may grow
        the document (--bg-clear) so the art clears the content. */
     height: 37.5vw;
     background-image: url("/Mystical-Red-Portal.png");
