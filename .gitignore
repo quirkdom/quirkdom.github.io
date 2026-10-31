@@ -5,5 +5,6 @@
 
 # build output of scripts/build.ts (see .github/workflows/deploy.yml)
 dist/
+.dev/
 
 node_modules/

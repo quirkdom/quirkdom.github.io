@@ -5,6 +5,7 @@
   "scripts": {
     "build": "bun run scripts/build.ts",
     "dev": "bun run scripts/dev-server.ts",
+    "preview": "bun run scripts/preview.ts",
     "fonts": "scripts/build-webfonts.sh"
   },
   "module": "index.ts",

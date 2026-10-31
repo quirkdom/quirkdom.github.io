@@ -1,5 +1,5 @@
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "fs/promises";
-import { existsSync, readFileSync } from "fs";
+import { existsSync, readFileSync, statSync } from "fs";
 import path from "path";
 
 export const ROOT = path.resolve(import.meta.dir, "..");
@@ -19,6 +19,11 @@ export interface Page {
     fullPath: string;
     body: string;
     data: Record<string, string>;
+}
+
+export interface BuildOptions {
+    drafts?: boolean;
+    outDir?: string;
 }
 
 export interface BuildResult {
@@ -75,6 +80,75 @@ export function splitFrontmatter(raw: string, file: string): [Record<string, str
         throw new Error(`${path.relative(ROOT, file)}: date must be YYYY-MM-DD, got "${data.date}"`);
     }
     return [data, raw.slice(match[0].length)];
+}
+
+export function isDraft(data: Record<string, string>): boolean {
+    if (data.draft === "true" || data.draft === "yes") return true;
+    if (data.published === "false" || data.published === "no") return true;
+    return false;
+}
+
+export function isUnderDraftDir(relPath: string, draftDirs: Set<string>): boolean {
+    for (const draftDir of draftDirs) {
+        if (draftDir === ".") continue;
+        if (relPath === draftDir || relPath.startsWith(draftDir + "/")) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/** Extract file paths referenced in HTML / Markdown text. */
+export function extractReferences(text: string): string[] {
+    const refs: string[] = [];
+    const attrRegex = /\b(?:href|src)\s*=\s*(?:"([^"]*)"|'([^']*)')/gi;
+    let match: RegExpExecArray | null;
+    while ((match = attrRegex.exec(text)) !== null) {
+        const val = match[1] ?? match[2];
+        if (val) refs.push(val.trim());
+    }
+    const mdRegex = /!?\[[^\]]*\]\(([^)]+)\)/g;
+    while ((match = mdRegex.exec(text)) !== null) {
+        const val = match[1].split(/\s+/)[0];
+        if (val) refs.push(val.trim());
+    }
+    const embedRegex = /\{\{embed:\s*([^}]+)\}\}/g;
+    while ((match = embedRegex.exec(text)) !== null) {
+        if (match[1]) refs.push(match[1].trim());
+    }
+    return refs;
+}
+
+/** Resolve a reference string to a normalized relative path under PAGES, or null if outside PAGES. */
+export function resolvePageAsset(ref: string, pageDir: string): string | null {
+    if (
+        !ref ||
+        ref.startsWith("#") ||
+        ref.startsWith("mailto:") ||
+        ref.startsWith("tel:") ||
+        ref.startsWith("javascript:") ||
+        ref.startsWith("data:") ||
+        /^https?:\/\//i.test(ref) ||
+        ref.startsWith("//")
+    ) {
+        return null;
+    }
+
+    const clean = ref.split(/[?#]/)[0].trim();
+    if (!clean) return null;
+
+    let targetPath: string;
+    if (clean.startsWith("/")) {
+        targetPath = path.join(PAGES, clean.slice(1));
+    } else {
+        targetPath = path.resolve(pageDir, clean);
+    }
+
+    const rel = path.relative(PAGES, targetPath).split(path.sep).join("/");
+    if (!rel.startsWith("..") && !path.isAbsolute(rel) && existsSync(targetPath)) {
+        return rel;
+    }
+    return null;
 }
 
 /** Nearest ancestor layout.html, walking up to (and including) pages/. */
@@ -174,13 +248,24 @@ export function renderWritings(writings: Writing[]): string {
     return html + "</ul>\n";
 }
 
-/** Full site build. */
-export async function build(): Promise<BuildResult> {
-    await rm(DIST, { recursive: true, force: true });
-    await mkdir(DIST, { recursive: true });
+export function parseArgs(args: string[]): BuildOptions {
+    const drafts =
+        args.includes("--drafts") ||
+        process.env.DRAFTS === "true" ||
+        process.env.DRAFTS === "1";
+    return { drafts };
+}
 
-    // 1. Copy public/ to dist/ root
-    await cp(PUBLIC, DIST, { recursive: true });
+/** Full site build. */
+export async function build(options: BuildOptions = {}): Promise<BuildResult> {
+    const includeDrafts = options.drafts ?? false;
+    const outDir = options.outDir ? path.resolve(options.outDir) : DIST;
+
+    await rm(outDir, { recursive: true, force: true });
+    await mkdir(outDir, { recursive: true });
+
+    // 1. Copy public/ to outDir root
+    await cp(PUBLIC, outDir, { recursive: true });
 
     // 2. Discover files under pages/
     const pageFiles = await walk(PAGES);
@@ -189,6 +274,17 @@ export async function build(): Promise<BuildResult> {
     const mdPages: Page[] = [];
     const sourceByDir: Record<string, string> = {};
     const writings: Writing[] = [];
+    const draftDirs = new Set<string>();
+
+    interface ParsedMd {
+        dir: string;
+        relPath: string;
+        fullPath: string;
+        data: Record<string, string>;
+        body: string;
+        isPageDraft: boolean;
+    }
+    const parsedMds: ParsedMd[] = [];
 
     for (const relPath of pageFiles.filter((f) => f.endsWith(".md"))) {
         const fullPath = path.join(PAGES, relPath);
@@ -200,14 +296,73 @@ export async function build(): Promise<BuildResult> {
 
         const raw = await readFile(fullPath, "utf8");
         const [data, body] = splitFrontmatter(raw, fullPath);
+        const pageDraft = isDraft(data);
+        if (pageDraft && dir !== ".") {
+            draftDirs.add(dir);
+        }
+        parsedMds.push({ dir, relPath, fullPath, data, body, isPageDraft: pageDraft });
+    }
 
-        if (data.date) {
-            if (dir === ".") throw new Error(`${relPath}: a dated page needs its own directory`);
-            if (!data.title) throw new Error(`${relPath}: a dated page needs a title`);
-            writings.push({ title: data.title, date: data.date, url: `/${dir}/` });
+    const draftPageAssetRefs = new Set<string>();
+    const publishedPageAssetRefs = new Set<string>();
+
+    for (const item of parsedMds) {
+        const isDraftPage = item.isPageDraft || isUnderDraftDir(item.dir, draftDirs);
+        const pageDir = path.dirname(item.fullPath);
+        const refs = extractReferences(item.body);
+
+        const layoutFile = findLayout(pageDir);
+        if (layoutFile) {
+            const layoutRaw = await readFile(layoutFile, "utf8");
+            refs.push(...extractReferences(layoutRaw));
         }
 
-        mdPages.push({ dir, source: relPath, fullPath, body, data });
+        for (const ref of refs) {
+            const assetRel = resolvePageAsset(ref, pageDir);
+            if (assetRel) {
+                if (isDraftPage) {
+                    draftPageAssetRefs.add(assetRel);
+                } else {
+                    publishedPageAssetRefs.add(assetRel);
+                }
+            }
+        }
+
+        if (isDraftPage && !includeDrafts) {
+            continue;
+        }
+
+        if (item.data.date) {
+            if (item.dir === ".") throw new Error(`${item.relPath}: a dated page needs its own directory`);
+            if (!item.data.title) throw new Error(`${item.relPath}: a dated page needs a title`);
+            writings.push({ title: item.data.title, date: item.data.date, url: `/${item.dir}/` });
+        }
+
+        mdPages.push({
+            dir: item.dir,
+            source: item.relPath,
+            fullPath: item.fullPath,
+            body: item.body,
+            data: item.data,
+        });
+    }
+
+    for (const relPath of pageFiles) {
+        if (!relPath.endsWith(".html") || path.posix.basename(relPath) === "layout.html") continue;
+        const fullPath = path.join(PAGES, relPath);
+        const htmlContent = await readFile(fullPath, "utf8");
+        const pageDir = path.dirname(fullPath);
+        const isDraftPage = isUnderDraftDir(relPath, draftDirs);
+        for (const ref of extractReferences(htmlContent)) {
+            const assetRel = resolvePageAsset(ref, pageDir);
+            if (assetRel) {
+                if (isDraftPage) {
+                    draftPageAssetRefs.add(assetRel);
+                } else {
+                    publishedPageAssetRefs.add(assetRel);
+                }
+            }
+        }
     }
 
     const writingsHtml = renderWritings(writings);
@@ -245,26 +400,44 @@ export async function build(): Promise<BuildResult> {
         context.content = content;
 
         const html = interpolate(layoutTemplate, context);
-        const dest = path.join(DIST, page.dir, "index.html");
+        const dest = path.join(outDir, page.dir, "index.html");
         await mkdir(path.dirname(dest), { recursive: true });
         await writeFile(dest, html);
     }
 
     // 5. Copy non-markdown, non-layout files from pages/
     let assets = (await walk(PUBLIC)).length;
+    let htmlPages = 0;
     for (const relPath of pageFiles) {
         if (relPath.endsWith(".md") || path.posix.basename(relPath) === "layout.html") continue;
+
+        if (!includeDrafts) {
+            const underDraft = isUnderDraftDir(relPath, draftDirs);
+            const refByDraft = draftPageAssetRefs.has(relPath);
+            const refByPublished = publishedPageAssetRefs.has(relPath);
+
+            // Exclude assets in draft directories unless also referenced by published pages
+            if (underDraft && !refByPublished) continue;
+
+            // Exclude assets referenced by draft pages unless also referenced by published pages
+            if (refByDraft && !refByPublished) continue;
+        }
+
         const src = path.join(PAGES, relPath);
-        const dest = path.join(DIST, relPath);
+        const dest = path.join(outDir, relPath);
         await mkdir(path.dirname(dest), { recursive: true });
         await cp(src, dest, { recursive: true });
-        assets += 1;
+        if (relPath.endsWith(".html")) {
+            htmlPages += 1;
+        } else {
+            assets += 1;
+        }
     }
 
-    await writeFile(path.join(DIST, ".nojekyll"), "");
+    await writeFile(path.join(outDir, ".nojekyll"), "");
 
     return {
-        pages: mdPages.length,
+        pages: mdPages.length + htmlPages,
         writings: writings.length,
         assets,
         writingsList: writings,
@@ -272,10 +445,13 @@ export async function build(): Promise<BuildResult> {
 }
 
 async function main(): Promise<void> {
-    const result = await build();
+    const options = parseArgs(process.argv.slice(2));
+    const result = await build(options);
+    const targetDir = options.outDir ? path.relative(ROOT, path.resolve(options.outDir)) : "dist";
     console.log(
         `built ${result.pages} page(s), ${result.writings} writing(s), ` +
-            `${result.assets} asset(s) -> dist/`,
+            `${result.assets} asset(s) -> ${targetDir}/` +
+            (options.drafts ? " (drafts enabled)" : ""),
     );
     for (const writing of result.writingsList.sort((a, b) => b.date.localeCompare(a.date))) {
         console.log(`  ${writing.date}  ${writing.url}`);

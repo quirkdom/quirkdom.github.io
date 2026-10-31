@@ -2,6 +2,7 @@
 title: One font, six files
 date: 2026-10-05
 description: How the pages under ~abi/ get set in ET Bembo without shipping a third of a megabyte of typeface.
+draft: true
 ---
 
 Every page under `~abi/` is set in ET Bembo — the Bembo revival from CTAN's

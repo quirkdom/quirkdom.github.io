@@ -12,6 +12,7 @@
 import { join, resolve, relative } from "path";
 import { fileURLToPath } from "url";
 import { watch } from "fs";
+import { stat } from "fs/promises";
 import { build } from "./build.ts";
 
 const args = process.argv.slice(2);
@@ -24,7 +25,7 @@ for (let i = 0; i < args.length; i++) {
     }
 }
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
-const DIR = resolve(__dirname, "../dist");
+const DIR = resolve(__dirname, "../.dev");
 const PAGES_DIR = resolve(__dirname, "../pages");
 const PUBLIC_DIR = resolve(__dirname, "../public");
 
@@ -65,7 +66,7 @@ async function rebuild(changedFiles: string[]): Promise<void> {
     try {
         console.log(`\n[dev] Changes detected: ${changedFiles.join(", ")}`);
         const start = performance.now();
-        const result = await build();
+        const result = await build({ drafts: true, outDir: DIR });
         const elapsed = (performance.now() - start).toFixed(0);
 
         console.log(
@@ -83,15 +84,30 @@ async function rebuild(changedFiles: string[]): Promise<void> {
     }
 }
 
+// Cache mtimes to avoid spurious change events from copy operations
+const fileMtimes: Map<string, number> = new Map();
+
 // Watch pages/ and public/
 function watchDir(dir: string): void {
-    const watcher = watch(dir, { recursive: true }, (_event, filename) => {
+    const watcher = watch(dir, { recursive: true }, async (_event, filename) => {
         if (!filename) return;
         if (filename.startsWith("_")) return;
         if (filename === ".DS_Store") return;
         if (filename.endsWith("~")) return;
 
-        const relPath = relative(dir, filename);
+        const fullPath = resolve(dir, filename);
+        try {
+            const s = await stat(fullPath);
+            const prev = fileMtimes.get(fullPath);
+            if (prev !== undefined && s.mtimeMs <= prev) {
+                return;
+            }
+            fileMtimes.set(fullPath, s.mtimeMs);
+        } catch {
+            // File might have been deleted, proceed with rebuild
+        }
+
+        const relPath = relative(dir, fullPath);
         scheduleRebuild(relPath);
     });
 
@@ -103,7 +119,7 @@ function watchDir(dir: string): void {
 // Initial build
 console.log("[dev] Initial build...");
 const start = performance.now();
-const result = await build();
+const result = await build({ drafts: true, outDir: DIR });
 console.log(
     `[dev] Built ${result.pages} pages, ${result.writings} writings, ${result.assets} assets in ${(performance.now() - start).toFixed(0)}ms`,
 );
