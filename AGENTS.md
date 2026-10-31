@@ -171,6 +171,23 @@ a JS chunk's `[hash]` (CSS hashes are purely content-based), so the same JS gets
 a different name under a different output directory; in CI the path is stable,
 so an unchanged deploy keeps its names.
 
+### three.js & Draco, all from jsDelivr
+
+`pages/index.html` carries an **importmap** pinning `three@0.185.0`. The bundler
+leaves those bare specifiers external, so the browser fetches three from
+jsDelivr at runtime. To keep it small:
+
+- the core is the minified `build/three.module.min.js`;
+- the four addons the viewer imports are mapped to jsDelivr's auto-minified
+  `.min.js` builds. The `three/addons/` prefix stays as a fallback for any other
+  addon (served unminified), so a new import keeps working without a new entry;
+- jsDelivr brotli/gzip-compresses the lot automatically.
+
+The bust is Draco-compressed, so `DRACOLoader` needs a decoder. The viewer hands
+it `DRACO_GLTF_CONFIG` — the smaller glTF-targeted decoder three ships — whose
+paths derive from the addon's own CDN URL, so there is no three version to keep
+in sync.
+
 ---
 
 ## Key Directories

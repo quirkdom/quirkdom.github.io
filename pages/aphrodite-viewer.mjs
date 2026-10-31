@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
+import { DRACOLoader, DRACO_GLTF_CONFIG } from 'three/addons/loaders/DRACOLoader.js';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
@@ -38,9 +38,10 @@ const bustGroup = new THREE.Group();
 scene.add(bustGroup);
 
 const dracoLoader = new DRACOLoader();
-dracoLoader.setDecoderPath(
-    'https://cdn.jsdelivr.net/npm/three@0.185.0/examples/jsm/libs/draco/'
-);
+/* The glTF-targeted decoder three ships, one quarter smaller than the generic
+   one. Its paths derive from the addon's own CDN URL, so there is no three
+   version to keep in sync here. */
+dracoLoader.setDecoderPath(DRACO_GLTF_CONFIG);
 const gltfLoader = new GLTFLoader();
 gltfLoader.setDRACOLoader(dracoLoader);
 
