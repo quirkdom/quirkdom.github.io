@@ -1,41 +1,35 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta name="description" content="Quirkdom, by Abi." />
-        <title>Quirkdom by Abi</title>
-        <link rel="stylesheet" href="/index.css" />
-    </head>
 
-    <body>
-        <header style="margin-bottom: 2em">
-            <a href="https://quirkdom.com" style="font-size: x-large"
-                >Quirkdom</a
-            >
-            <br />
-            by <img class="emoji-aligned prof-pic" src="/prof_abi.jpg" alt="Abi" />
-            <a href="https://x.com/AbiQuirkdom"> Abi</a>
-        </header>
-        <main>
-            <section>
-                <p>
-                    values:
-                    <img
-                        class="emoji-aligned"
-                        src="https://github.githubassets.com/images/icons/emoji/shipit.png"
-                        alt="ship it"
-                    />
-                    🦄 🚀
-                    <img
-                        class="emoji-aligned"
-                        src="https://github.githubassets.com/images/icons/emoji/trollface.png"
-                        alt="problem?"
-                    />
-                    <br />
-                    contact:
-                    <code
-                        ><a
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Quirkdom, by Abi." />
+    <title>Quirkdom by Abi</title>
+    <link rel="preload" href="/fonts/IoskeleyMono-Regular.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="stylesheet" href="/index.css" />
+</head>
+
+<body>
+    <header style="margin-bottom: 2em">
+        <h1>Quirkdom</h1>
+        by <img id="profile-pic" src="/prof_abi.jpg" alt="Abi" />
+        <a href="https://x.com/AbiQuirkdom"> Abi</a>
+    </header>
+    <main>
+        <section>
+            <!-- <p>
+                values:
+                <img class="emoji-aligned" src="https://github.githubassets.com/images/icons/emoji/shipit.png"
+                    alt="ship it!" />
+                🦄 🚀
+                <img class="emoji-aligned" src="https://github.githubassets.com/images/icons/emoji/trollface.png"
+                    alt="problem?" />
+                <br />
+            </p> -->
+            <p>
+                contact:
+                <code><a
                             href="#"
                             class="crypt-mail"
                             data-tld="moc"
@@ -43,27 +37,31 @@
                             data-user="tcatnoc"
                         ></a
                     ></code>
-                </p>
-            </section>
-            <section>
-                <h4>endeavour</h4>
-                <ul>
-                    <li>
-                        <a href="https://trezur.quirkdom.com/"
-                            ><img
-                                src="https://trezur.quirkdom.com/trezur_logo.svg"
-                                alt="Trezur"
-                                class="emoji-aligned"
-                            />
-                        </a>
-                        <span>
-                            is a fast, simple, offline-first web-app to generate
-                            TOTP and HOTP tokens.
-                        </span>
-                    </li>
-                </ul>
-            </section>
-        </main>
-        <script src="/index.js" defer></script>
-    </body>
+            </p>
+        </section>
+        <section>
+            <h2>endeavours</h2>
+            <ul>
+                <li>
+                    <a href="https://trezur.quirkdom.com/"><img src="https://trezur.quirkdom.com/trezur_logo.svg"
+                            alt="Trezur" id="trezur-logo" /></a> is a fast, simple, offline-first web-app to
+                    generate TOTP and HOTP tokens.
+                </li>
+                <li>
+                    <a href="https://github.com/quirkdom/catpult"><code>catpult</code></a> is the easiest, safest way to
+                    send secrets and files directly peer-to-peer.
+                </li>
+                <li>
+                    <a href="https://sutxi.quirkdom.com/">Sutxi</a> is a minimal reading list.
+                </li>
+                <li>
+                    <a href="https://github.com/quirkdom/calm"><code>calm</code></a> is a CLI tool that answers simple
+                    questions using a local language model.
+                </li>
+            </ul>
+        </section>
+    </main>
+    <script src="/index.js" defer></script>
+</body>
+
 </html>

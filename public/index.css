@@ -1,28 +1,172 @@
+@font-face {
+    font-family: "Ioskeley Mono";
+    src: url("/fonts/IoskeleyMono-Regular.woff2") format("woff2");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Ioskeley Mono";
+    src: url("/fonts/IoskeleyMono-Italic.woff2") format("woff2");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: "Ioskeley Mono";
+    src: url("/fonts/IoskeleyMono-Bold.woff2") format("woff2");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+html {
+    background-color: #0d0004;
+}
+
 html,
 body {
     height: 100%;
+    min-height: 100dvh;
     margin: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 body {
-    font-family: "Andale Mono", "Lucida Console", Georgia;
-    text-align: center;
-    font-size: larger;
-    flex-direction: column;
+    position: relative;
+    isolation: isolate;
+    padding: 3.5rem 4.5rem;
+    box-sizing: border-box;
+    background-color: #0d0004;
+    background-image:
+        radial-gradient(
+            ellipse 85% 60% at 20% 45%,
+            rgba(40, 4, 10, 0.45) 0%,
+            rgba(30, 3, 7, 0.25) 40%,
+            transparent 75%
+        ),
+        linear-gradient(
+            to right,
+            #170205 0%,
+            #230408 18%,
+            #1e0307 28%,
+            #160306 45%,
+            #0f0104 65%,
+            #0d0004 100%
+        );
+    font-family: "Ioskeley Mono", "Andale Mono", "Lucida Console", monospace;
+    font-size: 12px;
+    line-height: 1.6;
+    color: #ede3e1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 2px 8px rgba(21, 2, 5, 0.9);
 }
 
+body::before {
+    content: "";
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 37.5vw;
+    background-image: url("/Mystical-Red-Portal.png");
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+    -webkit-mask-image:
+        linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(0, 0, 0, 0.2) 8%,
+            rgba(0, 0, 0, 0.7) 18%,
+            black 30%,
+            black 92%,
+            transparent 100%
+        );
+    mask-image:
+        linear-gradient(
+            to bottom,
+            transparent 0%,
+            rgba(0, 0, 0, 0.2) 8%,
+            rgba(0, 0, 0, 0.7) 18%,
+            black 30%,
+            black 92%,
+            transparent 100%
+        );
+    z-index: -1;
+    pointer-events: none;
+}
+
+a {
+    color: #ff8a80;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+a:hover {
+    color: #ffb4ab;
+}
+
+header a {
+    color: #fff0ee;
+    text-decoration: none;
+}
+
+header a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    font-family: inherit;
+    font-weight: 700;
+    color: #ffab91;
+    line-height: 1.25;
+    margin: 0;
+    margin-bottom: 0.5em;
+}
+
+h1 {
+    font-size: 32px;
+    margin-bottom: 0.3em;
+}
+
+h2 {
+    font-size: 20px;
+}
+
+h3 {
+    font-size: 16px;
+}
+
+h4 {
+    font-size: 14px;
+}
+
+/* code {
+    font-family: inherit;
+    font-size: inherit;
+} */
+
+img,
 .emoji-aligned {
     height: 1em;
     width: auto;
+    vertical-align: baseline;
 }
 
-.prof-pic {
-    border-radius: 20% 20% 20% 20%;
-    vertical-align: middle;
-    display: inline-block;
+#profile-pic {
+    height: 1rem;
+    border-radius: 20%;
+}
+
+#trezur-logo {
+    height: 0.8em;
 }
 
 .crypt-mail::after {
@@ -32,7 +176,7 @@ body {
 }
 
 section {
-    margin-bottom: 3em;
+    margin-bottom: 2.5em;
 }
 
 ul {
@@ -42,9 +186,5 @@ ul {
 }
 
 li {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     margin-block: 0.5em;
-    max-width: 36em;
 }
