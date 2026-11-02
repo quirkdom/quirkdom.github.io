@@ -89,6 +89,8 @@ try {
 
 const ROTATE_SPEED = 0.0004;
 const DRAG_SENSITIVITY = 0.008;
+const BOB_AMPLITUDE = 0.040;
+const BOB_SPEED = 0.0015;
 
 let dragging = false;
 let pointerX = 0;
@@ -168,6 +170,7 @@ if (window.ResizeObserver) {
 /* ── render loop ────────────────────────────────────────── */
 
 renderer.setAnimationLoop(time => {
+    bustGroup.position.y = Math.sin(time * BOB_SPEED) * BOB_AMPLITUDE;
     if (!dragging) {
         bustGroup.rotation.y =
             (time + autoTimeOffset) * ROTATE_SPEED;
